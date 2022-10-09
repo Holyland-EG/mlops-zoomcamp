@@ -16,6 +16,11 @@ mlflow.set_experiment("random-forest-hyperopt")
 def load_pickle(filename):
     with open(filename, "rb") as f_in:
         return pickle.load(f_in)
+        
+    
+def write_pickle(filename: str, obj):
+    with open(filename, "wb") as f_in:
+        pickle.dump(obj, f_in)
 
 
 def run(data_path, num_trials):
@@ -24,11 +29,20 @@ def run(data_path, num_trials):
     X_valid, y_valid = load_pickle(os.path.join(data_path, "valid.pkl"))
 
     def objective(params):
+        with mlflow.start_run():
 
-        rf = RandomForestRegressor(**params)
-        rf.fit(X_train, y_train)
-        y_pred = rf.predict(X_valid)
-        rmse = mean_squared_error(y_valid, y_pred, squared=False)
+            rf = RandomForestRegressor(**params)
+            rf.fit(X_train, y_train)
+            y_pred = rf.predict(X_valid)
+            rmse = mean_squared_error(y_valid, y_pred, squared=False)
+            
+            model_path = f"{data_path}/rf_regr.bin"
+            write_pickle(model_path, rf)
+            
+            for k, v in params.items():
+                mlflow.log_param(k, v)
+            mlflow.log_metric("rmse", rmse)
+            mlflow.log_artifact(local_path=model_path, artifact_path="models_pickle")
 
         return {'loss': rmse, 'status': STATUS_OK}
 

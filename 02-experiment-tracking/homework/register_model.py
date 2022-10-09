@@ -18,11 +18,11 @@ mlflow.set_experiment(EXPERIMENT_NAME)
 mlflow.sklearn.autolog()
 
 SPACE = {
-    'max_depth': scope.int(hp.quniform('max_depth', 1, 20, 1)),
-    'n_estimators': scope.int(hp.quniform('n_estimators', 10, 50, 1)),
-    'min_samples_split': scope.int(hp.quniform('min_samples_split', 2, 10, 1)),
-    'min_samples_leaf': scope.int(hp.quniform('min_samples_leaf', 1, 4, 1)),
-    'random_state': 42
+    "max_depth": scope.int(hp.quniform("max_depth", 1, 20, 1)),
+    "n_estimators": scope.int(hp.quniform("n_estimators", 10, 50, 1)),
+    "min_samples_split": scope.int(hp.quniform("min_samples_split", 2, 10, 1)),
+    "min_samples_leaf": scope.int(hp.quniform("min_samples_leaf", 1, 4, 1)),
+    "random_state": 42
 }
 
 
@@ -65,13 +65,21 @@ def run(data_path, log_top):
 
     # select the model with the lowest test RMSE
     experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
-    # best_run = client.search_runs( ...  )[0]
+    best_run = client.search_runs(
+        experiment_ids=experiment.experiment_id,
+        run_view_type=ViewType.ACTIVE_ONLY,
+        max_results=1,
+        order_by=["metrics.test_rmse ASC"]
+    )[0]
 
     # register the best model
-    # mlflow.register_model( ... )
+    mlflow.register_model(
+        f"runs:/{best_run.info.run_id}/sklearn-model",
+        "sk-learn-random-forest-reg"
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

@@ -6,6 +6,8 @@ data/
 *.parquet
 *.html
 *.csv
+*.pkl
+*.bin
 
 .venv
 venv
@@ -20,3 +22,6 @@ __pycache__/
 **terraform.tfstate*
 
 nohup.out
+mlflow.db
+mlruns/
+.DS_Store
